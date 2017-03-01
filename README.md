@@ -1,10 +1,5 @@
 # Two factor authentication for Devise
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/Houdini/two_factor_authentication?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-[![Build Status](https://travis-ci.org/Houdini/two_factor_authentication.svg?branch=master)](https://travis-ci.org/Houdini/two_factor_authentication)
-[![Code Climate](https://codeclimate.com/github/Houdini/two_factor_authentication.png)](https://codeclimate.com/github/Houdini/two_factor_authentication)
-
 ## Features
 
 * Support for 2 types of OTP codes
@@ -27,6 +22,18 @@ In a Rails environment, require the gem in your Gemfile:
 Once that's done, run:
 
     bundle install
+
+And run below to add Devise config values in `config/initializers/devise.rb`:
+
+    bundle exec rails g two_factor_authentication:install
+
+You need to set `OTP_SECRET_ENCRYPTION_KEY` environment key to encrypt google
+authentication secretes. For development environment, you can use a gem like,
+[dotenv](https://github.com/bkeepers/dotenv) or [figaro](https://github.com/laserlemon/figaro).
+
+The `OTP_SECRET_ENCRYPTION_KEY` must be a random key that is not stored in the
+DB, and is not checked in to your repo. It is recommended to store it in an
+environment variable, and you can generate it with `bundle exec rake secret`.
 
 Note that Ruby 2.1 or greater is required.
 
@@ -85,22 +92,6 @@ Run the migration with:
 Add the following line to your model to fully enable two-factor auth:
 
     has_one_time_password(encrypted: true)
-
-Set config values in `config/initializers/devise.rb`:
-
-```ruby
-config.max_login_attempts = 3  # Maximum second factor attempts count.
-config.allowed_otp_drift_seconds = 30  # Allowed TOTP time drift between client and server.
-config.otp_length = 6  # TOTP code length
-config.direct_otp_valid_for = 5.minutes  # Time before direct OTP becomes invalid
-config.direct_otp_length = 6  # Direct OTP code length
-config.remember_otp_session_for_seconds = 30.days  # Time before browser has to perform 2fA again. Default is 0.
-config.otp_secret_encryption_key = ENV['OTP_SECRET_ENCRYPTION_KEY']
-config.second_factor_resource_id = 'id' # Field or method name used to set value for 2fA remember cookie
-```
-The `otp_secret_encryption_key` must be a random key that is not stored in the
-DB, and is not checked in to your repo. It is recommended to store it in an
-environment variable, and you can generate it with `bundle exec rake secret`.
 
 Override the method in your model in order to send direct OTP codes. This is
 automatically called when a user logs in unless they have TOTP enabled (see
