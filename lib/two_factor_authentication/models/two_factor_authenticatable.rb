@@ -73,8 +73,12 @@ module Devise
           self.class.max_login_attempts
         end
 
+        def gauth_enabled?
+          false
+        end
+
         def totp_enabled?
-          respond_to?(:otp_secret_key) && !otp_secret_key.nil?
+          respond_to?(:otp_secret_key) && !otp_secret_key.nil? && gauth_enabled?
         end
 
         def confirm_totp_secret(secret, code, options = {})

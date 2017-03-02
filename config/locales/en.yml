@@ -6,3 +6,6 @@ en:
       max_login_attempts_reached: "Access completely denied as you have reached your attempts limit"
       contact_administrator: "Please contact your system administrator."
       code_has_been_sent: "Your authentication code has been sent."
+      qr_invalid_token: "Invalid Token. Please scan again."
+      gauth_enabled: "Google Authentication Enabled"
+      gauth_disabled: "Google Authentication Disabled"

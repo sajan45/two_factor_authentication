@@ -35,7 +35,7 @@ class Devise::TwoFactorAuthenticationController < Devise::SessionsController
     else
       sign_in(resource_name, resource, bypass: true)
     end
-    set_flash_message :notice, :success
+    flash[:notice] = I18n.t('devise.two_factor_authentication.success')
     resource.update_attribute(:second_factor_attempts_count, 0)
 
     redirect_to after_two_factor_success_path_for(resource)
@@ -59,7 +59,7 @@ class Devise::TwoFactorAuthenticationController < Devise::SessionsController
   def after_two_factor_fail_for(resource)
     resource.second_factor_attempts_count += 1
     resource.save
-    set_flash_message :alert, :attempt_failed, now: true
+    flash.now[:alert] = I18n.t('devise.two_factor_authentication.attempt_failed')
 
     if resource.max_login_attempts?
       sign_out(resource)

@@ -1,0 +1,17 @@
+<h2>Scan The Below QR Code:</h2>
+
+<div style="margin: 100px">
+  <%= image_tag(@qr_url, alt: 'Google Authenticator QRCode') %>
+</div>
+
+<%= form_for(resource, :as => resource_name, :url => [resource_name, :displayqr], :html => { :method => :put }) do |f| %>
+  <%= devise_error_messages! %>
+  <h3>Would you like to enable Google Authentication ?</h3>
+  <p>Google Authentication status:<br />
+  <%= check_box_tag :gauth_enabled, 'true', !resource.otp_secret_key.nil? %></p>
+  <%= hidden_field_tag :tmpid, @tmpid %>
+  <p>Give your token number to continue:<br />
+  <%= text_field_tag :otp_secret_key, nil, :autocomplete => :off %>
+
+  <p><%= f.submit 'Submit' %></p>
+<% end %>
