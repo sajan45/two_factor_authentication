@@ -131,12 +131,15 @@ def gauth_enabled?
 end
 ```
 Please note that, this only enables this functionality. For complete setup, follow below steps:
+
 **STEP 1**:
 User signs up.
+
 **STEP 2**:
 User visits the page `/users/displayqr`.
 (This url will be in format of `/resource/displayqr`.For example, for activeadmin default model
 `AdminUser`, it will be `/admin_users/displayqr`)
+
 **STEP 3**:
 In the above page, there will be a QR code shown. User needs to scan that in Google Authenticator
 App. And then check of checkbox for activation. Fill the text box with the code, currently
@@ -150,22 +153,19 @@ may retrieve a one-time password directly from the Google Authenticator app.
 
 #### Overriding the view
 
-The default view that shows the form can be overridden by adding a
-file named `show.html.erb` (or `show.html.haml` if you prefer HAML)
-inside `app/views/devise/two_factor_authentication/` and customizing it.
-Below is an example using ERB:
+Since default views are only a skeleton and ugly, you will more likely want
+to override those views.
+To copy all the views to your application, run:
 
+    rails g two_factor_authentication:views
 
-```html
-<h2>Hi, you received a code by email, please enter it below, thanks!</h2>
+If you are using multiple devise models, then make the `config.scoped_views` **true**
+in `devise.rb` and then run the command below:
 
-<%= form_tag([resource_name, :two_factor_authentication], :method => :put) do %>
-  <%= text_field_tag :code %>
-  <%= submit_tag "Log in!" %>
-<% end %>
+    rails g two_factor_authentication:views admin_users
 
-<%= link_to "Sign out", destroy_user_session_path, :method => :delete %>
-```
+Here `admin_users` is the scope name for your model e.g 'AdminUser' . Usually it is
+underscored and pluralized version of your model name like your models `table_name`.
 
 #### Upgrading from version 1.X to 2.X
 
@@ -219,40 +219,7 @@ steps:
 3. Add `encrypted: true` to `has_one_time_password` in your model.
    For example: `has_one_time_password(encrypted: true)`
 
-4. Generate a migration to populate the new encryption fields:
-   ```
-   rails g migration PopulateEncryptedOtpFields
-   ```
-
-   Open the generated file, and replace its contents with the following:
-   ```ruby
-   class PopulateEncryptedOtpFields < ActiveRecord::Migration
-      def up
-        User.reset_column_information
-
-        User.find_each do |user|
-          user.otp_secret_key = user.read_attribute('otp_secret_key')
-          user.save!
-        end
-      end
-
-      def down
-        User.reset_column_information
-
-        User.find_each do |user|
-          user.otp_secret_key = ROTP::Base32.random_base32
-          user.save!
-        end
-      end
-    end
-  ```
-
-5. Generate a migration to remove the `:otp_secret_key` column:
-   ```
-   rails g migration RemoveOtpSecretKeyFromUsers otp_secret_key:string
-   ```
-
-6. Run the migrations: `bundle exec rake db:migrate`
+4. Ask your users to follow STEP 2 and 3 from usage section above.
 
 If, for some reason, you want to switch back to the old non-encrypted version,
 use these steps:
@@ -262,7 +229,7 @@ use these steps:
 2. Roll back the last 3 migrations (assuming you haven't added any new ones
 after them):
    ```
-   bundle exec rake db:rollback STEP=3
+   bundle exec rake db:rollback STEP=1
    ```
 
 ### Example App
