@@ -1,4 +1,3 @@
-require 'two_factor_authentication/hooks/two_factor_authenticatable'
 require 'rotp'
 require 'encryptor'
 
@@ -98,6 +97,22 @@ module Devise
             direct_otp: random_base10(digits),
             direct_otp_sent_at: Time.now.utc
           )
+        end
+
+        def assign_tmp
+          begin
+            temp_key = ROTP::Base32.random_base32(32)
+          end while self.class.exists?(sf_auth_temp: temp_key)
+
+          self.update_attributes(sf_auth_temp: temp_key)
+          self.sf_auth_temp
+        end
+
+        def require_token?(cookie)
+          if (self.class.remember_otp_session_for_seconds <= 0) || cookie.blank?
+            return true
+          end
+          return true if cookie != "#{self.class}-#{self.public_send(Devise.second_factor_resource_id)}"
         end
 
         private

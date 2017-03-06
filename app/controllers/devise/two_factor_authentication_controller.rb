@@ -1,44 +1,57 @@
 require 'devise/version'
 
 class Devise::TwoFactorAuthenticationController < Devise::SessionsController
-  prepend_before_action :authenticate_scope!
-  before_action :prepare_and_validate, :handle_two_factor_authentication
+  prepend_before_action :authenticate_scope!#, except: [:show]
+  before_action :prepare_and_validate
+
+  include Devise::Controllers::Helpers
 
   def show
+    @sfa_temp = params['sfa_temp']
+    if @sfa_temp.nil?
+      redirect_to :root
+    else
+      render :show
+    end
   end
 
   def update
     render :show and return if params[:code].nil?
 
-    if resource.authenticate_otp(params[:code])
-      after_two_factor_success_for(resource)
+    if params[:sfa_temp].present? && resource.present?
+      if resource.authenticate_otp(params[:code])
+        after_two_factor_success_for(resource)
+      else
+        after_two_factor_fail_for(resource)
+      end
     else
-      after_two_factor_fail_for(resource)
+      flash[:error] = I18n.t('devise.two_factor_authentication.temp_token_error')
+      redirect_to :root
     end
   end
 
   def resend_code
-    resource.send_new_otp
-    redirect_to send("#{resource_name}_two_factor_authentication_path"), notice: I18n.t('devise.two_factor_authentication.code_has_been_sent')
+    if resource
+      resource.send_new_otp
+      @sfa_temp = resource.sf_auth_temp
+      flash.now[:notice] = I18n.t('devise.two_factor_authentication.code_has_been_sent')
+      render :show
+      # redirect_to send("#{resource_name}_two_factor_authentication_path"), notice: I18n.t('devise.two_factor_authentication.code_has_been_sent')
+    else
+      flash[:error] = I18n.t('devise.two_factor_authentication.temp_token_error')
+      redirect_to :root
+    end
   end
 
   private
 
   def after_two_factor_success_for(resource)
     set_remember_two_factor_cookie(resource)
-
-    warden.session(resource_name)[TwoFactorAuthentication::NEED_AUTHENTICATION] = false
-    # For compatability with devise versions below v4.2.0
-    # https://github.com/plataformatec/devise/commit/2044fffa25d781fcbaf090e7728b48b65c854ccb
-    if Devise::VERSION.to_f >= 4.2
-      bypass_sign_in(resource, scope: resource_name)
-    else
-      sign_in(resource_name, resource, bypass: true)
-    end
+    sign_in(resource_name, resource)
     flash[:notice] = I18n.t('devise.two_factor_authentication.success')
-    resource.update_attribute(:second_factor_attempts_count, 0)
+    resource.update_attributes(second_factor_attempts_count: 0, sf_auth_temp: nil)
 
-    redirect_to after_two_factor_success_path_for(resource)
+    respond_with resource, :location => after_sign_in_path_for(resource)
   end
 
   def set_remember_two_factor_cookie(resource)
@@ -47,13 +60,10 @@ class Devise::TwoFactorAuthenticationController < Devise::SessionsController
     if expires_seconds && expires_seconds > 0
       cookies.signed[TwoFactorAuthentication::REMEMBER_TFA_COOKIE_NAME] = {
           value: "#{resource.class}-#{resource.public_send(Devise.second_factor_resource_id)}",
+          secure: !(Rails.env.test? || Rails.env.development?),
           expires: expires_seconds.from_now
       }
     end
-  end
-
-  def after_two_factor_success_path_for(resource)
-    stored_location_for(resource_name) || :root
   end
 
   def after_two_factor_fail_for(resource)
@@ -70,7 +80,8 @@ class Devise::TwoFactorAuthenticationController < Devise::SessionsController
   end
 
   def authenticate_scope!
-    self.resource = send("current_#{resource_name}")
+    self.resource =
+    (params[:sfa_temp].present? ? resource_class.find_by_sf_auth_temp(params[:sfa_temp]) : nil)
   end
 
   def prepare_and_validate

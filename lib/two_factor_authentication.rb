@@ -37,6 +37,7 @@ module TwoFactorAuthentication
   REMEMBER_TFA_COOKIE_NAME = "remember_tfa"
 
   autoload :Schema, 'two_factor_authentication/schema'
+  autoload :Patches, 'two_factor_authentication/patches'
   module Controllers
     autoload :Helpers, 'two_factor_authentication/controllers/helpers'
   end

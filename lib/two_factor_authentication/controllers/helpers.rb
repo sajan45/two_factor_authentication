@@ -3,21 +3,7 @@ module TwoFactorAuthentication
     module Helpers
       extend ActiveSupport::Concern
 
-      included do
-        before_action :handle_two_factor_authentication
-      end
-
       private
-
-      def handle_two_factor_authentication
-        unless devise_controller?
-          Devise.mappings.keys.flatten.any? do |scope|
-            if signed_in?(scope) and warden.session(scope)[TwoFactorAuthentication::NEED_AUTHENTICATION]
-              handle_failed_second_factor(scope)
-            end
-          end
-        end
-      end
 
       def handle_failed_second_factor(scope)
         if request.format.present? and request.format.html?
@@ -38,6 +24,7 @@ module TwoFactorAuthentication
   end
 end
 
+# Probably not in use but not removing it since some tests are using it
 module Devise
   module Controllers
     module Helpers

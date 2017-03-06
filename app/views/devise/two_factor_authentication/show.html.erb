@@ -7,13 +7,13 @@
 <p><%= flash[:notice] %></p>
 
 <%= form_tag([resource_name, :two_factor_authentication], :method => :put) do %>
+  <%= hidden_field_tag :sfa_temp, @sfa_temp%>
   <%= text_field_tag :code %>
   <%= submit_tag "Submit" %>
 <% end %>
 
 <% if resource.direct_otp %>
-<%= link_to "Resend Code", send("resend_code_#{resource_name}_two_factor_authentication_path"), action: :get %>
+<%= link_to "Resend Code", send("resend_code_#{resource_name}_two_factor_authentication_path", {sfa_temp: @sfa_temp}), action: :get %>
 <% else %>
-<%= link_to "Send me a code instead", send("resend_code_#{resource_name}_two_factor_authentication_path"), action: :get %>
+<%= link_to "Send me a code instead", send("resend_code_#{resource_name}_two_factor_authentication_path", {sfa_temp: @sfa_temp}), action: :get %>
 <% end %>
-<%= link_to "Sign out", send("destroy_#{resource_name}_session_path"), :method => :delete %>
