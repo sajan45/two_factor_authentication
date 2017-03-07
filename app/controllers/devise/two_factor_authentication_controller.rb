@@ -1,18 +1,14 @@
 require 'devise/version'
 
 class Devise::TwoFactorAuthenticationController < Devise::SessionsController
-  prepend_before_action :authenticate_scope!#, except: [:show]
+  prepend_before_action :authenticate_scope!
   before_action :prepare_and_validate
 
   include Devise::Controllers::Helpers
 
   def show
     @sfa_temp = params['sfa_temp']
-    if @sfa_temp.nil?
-      redirect_to :root
-    else
-      render :show
-    end
+    render :show
   end
 
   def update
@@ -24,10 +20,8 @@ class Devise::TwoFactorAuthenticationController < Devise::SessionsController
       else
         after_two_factor_fail_for(resource)
       end
-    else
-      flash[:error] = I18n.t('devise.two_factor_authentication.temp_token_error')
-      redirect_to :root
     end
+    # 'else' case would have been handled in 'prepare_and_validate' callback
   end
 
   def resend_code
@@ -36,11 +30,8 @@ class Devise::TwoFactorAuthenticationController < Devise::SessionsController
       @sfa_temp = resource.sf_auth_temp
       flash.now[:notice] = I18n.t('devise.two_factor_authentication.code_has_been_sent')
       render :show
-      # redirect_to send("#{resource_name}_two_factor_authentication_path"), notice: I18n.t('devise.two_factor_authentication.code_has_been_sent')
-    else
-      flash[:error] = I18n.t('devise.two_factor_authentication.temp_token_error')
-      redirect_to :root
     end
+    # 'else' case would have been handled in 'prepare_and_validate' callback
   end
 
   private
@@ -75,6 +66,7 @@ class Devise::TwoFactorAuthenticationController < Devise::SessionsController
       sign_out(resource)
       render :max_login_attempts_reached
     else
+      @sfa_temp = resource.sf_auth_temp
       render :show
     end
   end
@@ -85,7 +77,10 @@ class Devise::TwoFactorAuthenticationController < Devise::SessionsController
   end
 
   def prepare_and_validate
-    redirect_to :root and return if resource.nil?
+    if resource.nil?
+      flash[:error] = I18n.t('devise.two_factor_authentication.temp_token_error')
+      redirect_to :root and return
+    end
     @limit = resource.max_login_attempts
     if resource.max_login_attempts?
       sign_out(resource)
