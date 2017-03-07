@@ -6,3 +6,7 @@ fr:
       max_login_attempts_reached: "Limite de tentatives atteinte, accès refusé."
       contact_administrator: "Merci de contacter votre administrateur système."
       code_has_been_sent: "Votre code de validation envoyé."
+      qr_invalid_token: "Jeton invalide. Veuillez effectuer une nouvelle analyse et réintroduire le jeton."
+      gauth_enabled: "Authentification Google activée."
+      gauth_disabled: "L'authentification Google est désactivée."
+      temp_token_error: "Veuillez remplir la première étape pour vous connecter correctement ou contacter l'administrateur."

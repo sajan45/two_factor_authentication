@@ -6,3 +6,7 @@ es:
       max_login_attempts_reached: "Has llegado al límite de intentos fallidos, acceso denegado."
       contact_administrator: "Contacte a su administrador de sistema."
       code_has_been_sent: "El código de autenticación ha sido enviado."
+      qr_invalid_token: "Simbolo no valido. Vuelve a escanear y vuelve a introducir el token."
+      gauth_enabled: "Autenticación de Google habilitada."
+      gauth_disabled: "Desactivado la autenticación de Google."
+      temp_token_error: "Por favor, complete la primera señal de inicio de sesión correctamente o póngase en contacto con el administrador."
