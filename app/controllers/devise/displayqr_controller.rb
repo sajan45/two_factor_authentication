@@ -27,7 +27,7 @@ class Devise::DisplayqrController < DeviseController
       end
       resource.save
       flash[:notice] = I18n.t('devise.two_factor_authentication.gauth_enabled')
-      sign_in scope, resource, :bypass => true
+      bypass_sign_in(resource, scope: scope)
     else
       resource.otp_secret_key = nil
       resource.save

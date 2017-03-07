@@ -87,7 +87,11 @@ module Devise
         end
 
         def generate_totp_secret
-          ROTP::Base32.random_base32
+          begin
+            secret_key = ROTP::Base32.random_base32
+            encrypted_key = encrypt(secret_key)
+          end while self.class.exists?(encrypted_otp_secret_key: encrypted_key)
+          secret_key
         end
 
         def create_direct_otp(options = {})
