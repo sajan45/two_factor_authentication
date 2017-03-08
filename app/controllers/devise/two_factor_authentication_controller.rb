@@ -72,6 +72,8 @@ class Devise::TwoFactorAuthenticationController < Devise::SessionsController
   end
 
   def authenticate_scope!
+    p resource_class
+    p "hello"
     self.resource =
     (params[:sfa_temp].present? ? resource_class.find_by_sf_auth_temp(params[:sfa_temp]) : nil)
   end
